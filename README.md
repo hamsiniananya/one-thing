@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍓 One Thing
 
-## Getting Started
+### *Master one thing. Make a little magic every month.*
 
-First, run the development server:
+One Thing is a whimsical, AI-powered learning space built around a simple idea:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**You don't need to learn everything. Just pick one thing.**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Every month, choose something you've always wanted to understand — astronomy, cooking, financial literacy, psychology, photography, anything.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Tell One Thing where you're starting and how much time you have.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then let it build you a little world around it. ☀️
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🌸 The idea
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The internet gives us infinite things to learn.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Which is wonderful.
 
-## Deploy on Vercel
+And also... mildly overwhelming.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+One Thing turns that endless list of *"I should learn this someday"* into one intentional month.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+        🍓 CHOOSE
+           ↓
+      ✨ AI PLANS
+           ↓
+       🌱 LEARN
+           ↓
+       ☀️ PRACTICE
+           ↓
+       🌼 GROW
+           ↓
+       📖 REFLECT
+           ↓
+       🏆 MASTER
+           ↓
+      🍓 CHOOSE AGAIN
