@@ -12,6 +12,12 @@ Tell One Thing where you're starting and how much time you have.
 
 Then let it build you a little world around it. ☀️
 
+## ✨ What it looks like
+
+<p align="center">
+  <img src="docs/screenshots/one-thing-home.png" alt="One Thing homepage and monthly learning setup" width="100%">
+</p>
+
 ---
 
 ## 🌸 The idea
@@ -22,21 +28,4 @@ Which is wonderful.
 
 And also... mildly overwhelming.
 
-One Thing turns that endless list of *"I should learn this someday"* into one intentional month.
-
-```text
-        🍓 CHOOSE
-           ↓
-      ✨ AI PLANS
-           ↓
-       🌱 LEARN
-           ↓
-       ☀️ PRACTICE
-           ↓
-       🌼 GROW
-           ↓
-       📖 REFLECT
-           ↓
-       🏆 MASTER
-           ↓
-      🍓 CHOOSE AGAIN
+One Thing turns that endless list of *"I should learn this someday"* into one intentional month 🩵
