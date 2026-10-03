@@ -5,24 +5,17 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, LoaderCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-type Lesson = {
-  day: number;
+type RoadmapWeek = {
+  week: number;
   title: string;
   description: string;
-  estimatedMinutes: number;
-  difficulty: "beginner" | "intermediate" | "advanced";
-};
-
-type CurriculumModule = {
-  title: string;
-  description: string;
-  lessons: Lesson[];
+  subtopics: string[];
 };
 
 type Curriculum = {
   theme: string;
   goal: string;
-  modules: CurriculumModule[];
+  weeks: RoadmapWeek[];
 };
 
 type Screen = "review" | "customize" | "locked";
@@ -171,7 +164,7 @@ export default function Home() {
     setError("");
 
     try {
-      const response = await fetch("/api/generate-curriculum", {
+      const response = await fetch("/api/generate-roadmap", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -227,7 +220,7 @@ export default function Home() {
             <p className="retro-hero-subtitle">one curiosity at a time.</p>
             <p className="retro-intro-copy">
               A weird little computer that turns one thing you&apos;re curious
-              about into a whole month of learning.
+              about into a four-week learning adventure.
             </p>
 
             <div className="retro-floppy-card" aria-hidden="true">
@@ -242,7 +235,7 @@ export default function Home() {
             </div>
 
             <div className="retro-facts">
-              <span><b>30</b> DAYS</span>
+              <span><b>04</b> WEEKS</span>
               <span><b>01</b> BIG IDEA</span>
               <span><b>∞</b> CURIOSITY</span>
             </div>
@@ -272,7 +265,7 @@ export default function Home() {
                   <p className="retro-step-number">01 / PICK A CURIOSITY</p>
                   <h2>What do you want to master?</h2>
                   <p className="retro-help-copy">
-                    Choose a subject to spend the next 30 days exploring.
+                    Choose a subject to explore over the next four weeks.
                   </p>
                   <label className="retro-label" htmlFor="theme-input">YOUR SUBJECT</label>
                   <input
@@ -396,9 +389,9 @@ export default function Home() {
           <RetroWindow title="Month Locked In!" icon="🔒" className="retro-dialog-window">
             <div className="retro-dialog-content">
               <div className="retro-dialog-icon" aria-hidden="true">💿</div>
-              <p className="retro-dialog-eyebrow">{curriculum.theme} / 30-DAY COURSE</p>
+              <p className="retro-dialog-eyebrow">{curriculum.theme} / 4-WEEK ROADMAP</p>
               <h1>Your month is locked in.</h1>
-              <p>Day 1 is ready when you are.</p>
+              <p>Week 1 is ready when you are.</p>
               <div className="retro-dialog-actions">
                 <RetroButton onClick={() => setScreen("review")}>
                   <ArrowLeft className="h-4 w-4" /> Back to your month
@@ -407,7 +400,7 @@ export default function Home() {
             </div>
             <div className="retro-window-status">
               <span><span className="retro-status-led" /> SAVED TO YOUR MONTH</span>
-              <span>DAY 1: STANDING BY</span>
+              <span>WEEK 1: STANDING BY</span>
             </div>
           </RetroWindow>
         </motion.div>
@@ -514,39 +507,42 @@ export default function Home() {
             </div>
             <div className="retro-review-badge">
               <span aria-hidden="true">💾</span>
-              <span>MONTH FILE<br /><b>30 DAYS</b></span>
+              <span>ROADMAP FILE<br /><b>4 WEEKS</b></span>
             </div>
           </motion.div>
 
           <div className="retro-module-grid">
-            {curriculum.modules.map((module, moduleIndex) => (
+            {curriculum.weeks.map((week, weekIndex) => (
               <motion.section
-                key={`${module.title}-${moduleIndex}`}
+                key={week.week}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: moduleIndex * 0.05 }}
+                transition={{ duration: 0.35, delay: weekIndex * 0.05 }}
                 className="retro-module-window"
               >
-                <WindowTitle icon={moduleIndex % 2 === 0 ? "📂" : "📁"}>
-                  {`UNIT_${String(moduleIndex + 1).padStart(2, "0")}.DIR`}
+                <WindowTitle icon={weekIndex % 2 === 0 ? "📂" : "📁"}>
+                  {`WEEK_${String(week.week).padStart(2, "0")}.DIR`}
                 </WindowTitle>
+
                 <div className="retro-module-body">
-                  <p className="retro-unit-label">LEARNING UNIT {moduleIndex + 1}</p>
-                  <h2>{module.title}</h2>
-                  <p className="retro-module-description">{module.description}</p>
+                  <p className="retro-unit-label">LEARNING WEEK {week.week}</p>
+                  <h2>{week.title}</h2>
+                  <p className="retro-module-description">{week.description}</p>
+
                   <div className="retro-lessons">
-                    {module.lessons.map((lesson) => (
-                      <article key={lesson.day} className="retro-lesson">
-                        <div className="retro-day-number">{String(lesson.day).padStart(2, "0")}</div>
+                    {week.subtopics.map((subtopic, subtopicIndex) => (
+                      <article
+                        key={`${week.week}-${subtopicIndex}`}
+                        className="retro-lesson"
+                      >
+                        <div className="retro-day-number">
+                          {String(subtopicIndex + 1).padStart(2, "0")}
+                        </div>
                         <div className="retro-lesson-copy">
-                          <h3>{lesson.title}</h3>
-                          <p>{lesson.description}</p>
+                          <h3>{subtopic}</h3>
                         </div>
                         <div className="retro-lesson-meta">
-                          <span>{lesson.estimatedMinutes} MIN</span>
-                          <span className={`retro-difficulty difficulty-${lesson.difficulty}`}>
-                            {lesson.difficulty}
-                          </span>
+                          <span>TOPIC</span>
                         </div>
                       </article>
                     ))}
