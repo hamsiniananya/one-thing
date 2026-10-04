@@ -248,6 +248,80 @@ a:focus-visible {
   font-weight: 700;
 }
 
+.retro-auth-controls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: 4px;
+}
+
+.retro-auth-email {
+  display: inline-flex;
+  max-width: 210px;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  border: 1px solid #858585;
+  background: #efefef;
+  padding: 6px 8px;
+  box-shadow: inset 1px 1px #fff;
+  color: #233047;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retro-auth-led {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border: 1px solid #111;
+  background: #a6fa41;
+}
+
+.retro-auth-button {
+  min-height: 27px;
+  border: 1px solid #555;
+  background: #d0d0d0;
+  padding: 4px 8px;
+  box-shadow: inset 1px 1px #fff, inset -1px -1px #888, 1px 1px #555;
+  color: #20222b;
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.retro-auth-button:hover:not(:disabled) {
+  background: #fff;
+}
+
+.retro-auth-button:active:not(:disabled) {
+  box-shadow: inset 1px 1px #777, inset -1px -1px #fff;
+}
+
+.retro-auth-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.retro-auth-button-signup {
+  background: #d9ff45;
+}
+
+.retro-auth-inline-error {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 3;
+  border: 1px solid #a9243d;
+  background: #ffe1e7;
+  padding: 5px 7px;
+  color: #991d38;
+  font-size: 8px;
+}
+
 .retro-online-dot,
 .retro-status-led,
 .retro-blink-dot {
@@ -707,6 +781,160 @@ a:focus-visible {
   font-weight: 700;
 }
 
+.retro-auth-overlay {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  overflow-y: auto;
+  place-items: center;
+  background: rgb(8 14 37 / 66%);
+  padding: 24px 14px;
+  backdrop-filter: blur(2px);
+}
+
+.retro-auth-modal {
+  width: min(440px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  box-shadow: 7px 7px 0 #101010, inset 2px 2px #fff, inset -2px -2px #888;
+}
+
+.retro-auth-modal .retro-window-body {
+  padding: 19px 18px 0;
+}
+
+.retro-auth-intro .retro-step-number {
+  margin: 0;
+  font-size: 8px;
+}
+
+.retro-auth-intro h2 {
+  margin: 8px 0 0;
+  color: #182b77;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -1.3px;
+}
+
+.retro-auth-intro > p:last-child {
+  margin: 7px 0 16px;
+  color: #55565e;
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.retro-auth-google {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 2px solid #111;
+  background: #f4f2e8;
+  box-shadow: inset 2px 2px #fff, inset -2px -2px #aaa, 2px 2px #111;
+  color: #1d2029;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.retro-auth-google:hover:not(:disabled) {
+  background: #e8edff;
+}
+
+.retro-auth-google:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: inset 2px 2px #aaa, inset -2px -2px #fff;
+}
+
+.retro-auth-google:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.retro-google-mark {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  border: 1px solid #777;
+  background: #fff;
+  color: #2764ce;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.retro-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0 7px;
+  color: #69696e;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+}
+
+.retro-auth-divider::before,
+.retro-auth-divider::after {
+  height: 1px;
+  flex: 1;
+  background: #aaa;
+  content: "";
+}
+
+.retro-auth-modal .retro-label {
+  margin-top: 12px;
+}
+
+.retro-auth-modal .retro-input {
+  min-height: 37px;
+  margin-top: 5px;
+  padding: 8px 10px;
+  font-size: 10px;
+}
+
+.retro-auth-submit {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.retro-auth-submit:disabled {
+  cursor: wait;
+}
+
+.retro-auth-message {
+  border: 1px solid #567820;
+  background: #eaffc8;
+  margin: 10px 0 0;
+  padding: 8px;
+  color: #365714;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.retro-auth-switch {
+  margin: 15px 0 5px;
+  color: #5a5a62;
+  font-size: 9px;
+  text-align: center;
+}
+
+.retro-auth-switch button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #1537a5;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.retro-auth-modal .retro-window-status {
+  margin-top: 13px;
+}
+
 .retro-window-status span:first-child {
   display: inline-flex;
   align-items: center;
@@ -1070,6 +1298,485 @@ a:focus-visible {
   width: min(720px, 100%);
 }
 
+.retro-learning-page {
+  padding-bottom: 28px;
+}
+
+.retro-learning-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  border: 2px solid #111;
+  margin-bottom: 19px;
+  background: #f6f3e4;
+  padding: 17px 20px;
+  box-shadow: 4px 4px #111;
+}
+
+.retro-learning-heading h1 {
+  margin: 8px 0 0;
+  color: #1537a5;
+  font-size: clamp(24px, 4vw, 37px);
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-shadow: 2px 2px #b9ddff;
+}
+
+.retro-learning-heading > div:first-child > p:last-child {
+  max-width: 680px;
+  margin: 8px 0 0;
+  color: #50515a;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.retro-week-progress {
+  width: min(240px, 32%);
+  flex: 0 0 auto;
+  border: 1px solid #8c8c8c;
+  background: #dedede;
+  padding: 9px 10px;
+  box-shadow: inset 1px 1px #fff;
+  color: #46474f;
+  font-size: 7px;
+}
+
+.retro-week-progress > span {
+  display: block;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+}
+
+.retro-week-progress strong {
+  display: block;
+  margin-top: 5px;
+  color: #17399e;
+  font-size: 10px;
+}
+
+.retro-week-progress .retro-progress-track {
+  margin-top: 7px;
+}
+
+.retro-learning-grid {
+  display: grid;
+  grid-template-columns: minmax(245px, 0.75fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: 17px;
+}
+
+.retro-topic-list-window,
+.retro-topic-content-window {
+  min-width: 0;
+}
+
+.retro-topic-list-intro {
+  margin: 0 0 12px;
+  color: #50515a;
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.retro-topic-stack {
+  display: grid;
+  gap: 7px;
+}
+
+.retro-topic-row {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: 5px;
+  border: 1px solid #888;
+  background: #efeee7;
+  padding: 4px;
+  box-shadow: inset 1px 1px #fff;
+}
+
+.retro-topic-row-selected {
+  border-color: #102d92;
+  background: #dce7ff;
+  box-shadow: inset 0 0 0 1px #3457bd, 1px 1px #777;
+}
+
+.retro-topic-row-complete .retro-topic-select > span:last-child {
+  color: #5a6d33;
+  text-decoration: line-through;
+}
+
+.retro-topic-checkbox {
+  width: 17px;
+  flex: 0 0 17px;
+  align-self: center;
+  accent-color: #1639a6;
+  cursor: pointer;
+}
+
+.retro-topic-checkbox:disabled {
+  cursor: wait;
+}
+
+.retro-topic-select {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  padding: 6px 4px;
+  color: #252630;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.retro-topic-select:hover > span:last-child {
+  color: #1739a6;
+  text-decoration: underline;
+}
+
+.retro-topic-index {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  place-items: center;
+  border: 1px solid #111;
+  background: #ffdf35;
+  box-shadow: 1px 1px #111;
+  color: #111;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.retro-progress-message,
+.retro-progress-saving {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #9b8625;
+  margin-top: 11px;
+  background: #fff4b0;
+  padding: 8px;
+  color: #514414;
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.retro-progress-message button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #1537a5;
+  font-size: inherit;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.retro-progress-saving {
+  border-color: #8d8d8d;
+  background: #e6e6e6;
+  color: #4e4e55;
+}
+
+.retro-week-unlock {
+  display: flex;
+  gap: 9px;
+  border: 1px solid #777;
+  margin-top: 13px;
+  background: #ddd;
+  padding: 9px;
+  box-shadow: inset 1px 1px #fff;
+}
+
+.retro-week-unlock-open {
+  border-color: #528119;
+  background: #e6ffc2;
+}
+
+.retro-week-unlock > span:first-child {
+  font-family: sans-serif;
+  font-size: 19px;
+}
+
+.retro-week-unlock b,
+.retro-week-unlock small {
+  display: block;
+}
+
+.retro-week-unlock b {
+  color: #33343c;
+  font-size: 8px;
+}
+
+.retro-week-unlock-open b {
+  color: #365e12;
+}
+
+.retro-week-unlock small {
+  margin-top: 4px;
+  color: #5a5a60;
+  font-size: 7px;
+  line-height: 1.6;
+}
+
+.retro-topic-list-actions {
+  margin-top: 12px;
+}
+
+.retro-topic-content-window .retro-window-body {
+  padding: 15px 14px 0;
+}
+
+.retro-topic-content-heading {
+  border-bottom: 1px solid #999;
+  padding-bottom: 11px;
+}
+
+.retro-topic-content-heading .retro-step-number {
+  margin: 0;
+  font-size: 7px;
+}
+
+.retro-topic-content-heading h2 {
+  margin: 7px 0 0;
+  color: #182a75;
+  font-size: clamp(18px, 3vw, 25px);
+  font-weight: 900;
+  letter-spacing: -1.4px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.retro-resource-section > .retro-label {
+  margin: 13px 0 8px;
+}
+
+.retro-resource-list {
+  display: grid;
+  gap: 7px;
+}
+
+.retro-resource-card {
+  border: 1px solid #8a8a8a;
+  background: #f4f3ec;
+  padding: 9px 10px;
+  box-shadow: inset 1px 1px #fff;
+}
+
+.retro-resource-source {
+  margin: 0;
+  color: #2145a5;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.retro-resource-card h3 {
+  margin: 4px 0 0;
+  color: #252630;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.retro-resource-card > p:not(.retro-resource-source) {
+  margin: 4px 0 0;
+  color: #5a5b62;
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.retro-resource-card a {
+  display: inline-block;
+  margin-top: 6px;
+  color: #1537a5;
+  font-size: 8px;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.retro-resource-notice {
+  border: 1px solid #9b8625;
+  background: #fff4b0;
+  margin: 8px 0;
+  padding: 8px;
+  color: #514414;
+  font-size: 8px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.retro-content-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+  color: #51515a;
+  font-size: 8px;
+}
+
+.retro-summary-panel {
+  border: 1px solid #6679bd;
+  margin-top: 12px;
+  background: #e5ecff;
+  padding: 10px;
+  box-shadow: inset 1px 1px #fff;
+}
+
+.retro-summary-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.retro-summary-title > span {
+  color: #e73794;
+  font-size: 15px;
+}
+
+.retro-summary-title .retro-label {
+  margin: 0;
+}
+
+.retro-summary-panel > p:not(.retro-resource-notice):not(.retro-content-loading) {
+  margin: 7px 0 0;
+  color: #333746;
+  font-size: 9px;
+  line-height: 1.8;
+}
+
+.retro-ask-panel {
+  border: 2px solid #111;
+  margin-top: 13px;
+  background: #dedede;
+  padding: 11px;
+  box-shadow: inset 1px 1px #fff;
+}
+
+.retro-ask-title {
+  margin: 0;
+  color: #172d83;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.retro-ask-description {
+  margin: 5px 0 0;
+  color: #55565d;
+  font-size: 8px;
+}
+
+.retro-ask-form {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.retro-ask-form .retro-input {
+  min-width: 0;
+  min-height: 38px;
+  margin: 0;
+  font-size: 9px;
+}
+
+.retro-ask-form .retro-button {
+  flex: 0 0 auto;
+}
+
+.retro-answer {
+  border: 1px solid #8a8a8a;
+  margin-top: 9px;
+  background: #fff;
+  padding: 9px;
+  box-shadow: inset 1px 1px #ddd;
+}
+
+.retro-answer .retro-label {
+  margin: 0;
+}
+
+.retro-answer > p:last-child {
+  margin: 6px 0 0;
+  color: #33343b;
+  font-size: 9px;
+  line-height: 1.8;
+}
+
+.retro-sr-only {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.retro-notes-overlay {
+  position: fixed;
+  z-index: 18;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(8 14 37 / 42%);
+  padding: 18px;
+}
+
+.retro-notes-window {
+  width: min(390px, 100%);
+  box-shadow: 6px 6px #111, inset 2px 2px #fff, inset -2px -2px #888;
+}
+
+.retro-notes-window .retro-window-body {
+  padding: 15px 14px 0;
+}
+
+.retro-notes-title {
+  margin: 0;
+  color: #182b77;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.7;
+}
+
+.retro-notes-topic {
+  margin: 7px 0 0;
+  color: #56565e;
+  font-size: 8px;
+  line-height: 1.7;
+}
+
+.retro-notes-topic b {
+  color: #232630;
+}
+
+.retro-notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.retro-notes-footnote {
+  margin: 10px 0 0;
+  color: #64646a;
+  font-size: 7px;
+  line-height: 1.6;
+}
+
+.retro-notes-window .retro-window-status {
+  margin-top: 11px;
+}
+
 .retro-customize-heading {
   display: flex;
   align-items: center;
@@ -1356,6 +2063,23 @@ a:focus-visible {
 }
 
 @media (max-width: 760px) {
+  .retro-site-header {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .retro-auth-controls {
+    order: 4;
+    width: 100%;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .retro-auth-inline-error {
+    top: auto;
+    bottom: calc(100% + 4px);
+  }
+
   .retro-workspace {
     width: min(100% - 28px, 620px);
     padding-top: 12px;
@@ -1413,6 +2137,21 @@ a:focus-visible {
     padding: 16px;
   }
 
+  .retro-learning-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .retro-learning-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .retro-week-progress {
+    width: 100%;
+  }
+
   .retro-review-badge {
     align-self: flex-start;
   }
@@ -1446,6 +2185,10 @@ a:focus-visible {
 
   .retro-tagline {
     display: none;
+  }
+
+  .retro-auth-email {
+    max-width: 185px;
   }
 
   .retro-review-heading {
@@ -1483,6 +2226,15 @@ a:focus-visible {
   .retro-customize-footer > span {
     text-align: left;
   }
+
+  .retro-ask-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .retro-ask-form .retro-button {
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1493,5 +2245,100 @@ a:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Readable study content; system chrome and decorative labels retain the bitmap-like mono face. */
+.retro-learning-heading h1,
+.retro-topic-content-heading h2,
+.retro-topic-select,
+.retro-topic-list-intro,
+.retro-resource-card h3,
+.retro-resource-card > p:not(.retro-resource-source),
+.retro-summary-bullets,
+.retro-ask-title,
+.retro-ask-description,
+.retro-ask-form .retro-input,
+.retro-answer > p:last-child {
+  font-family: Arial, Helvetica, system-ui, sans-serif;
+}
+
+.retro-learning-heading > div:first-child > p:last-child,
+.retro-resource-card > p:not(.retro-resource-source),
+.retro-summary-bullets,
+.retro-ask-description,
+.retro-answer > p:last-child {
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.retro-topic-select {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.retro-topic-content-heading h2 {
+  font-size: clamp(18px, 2.2vw, 24px);
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.retro-resource-card h3 {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.retro-summary-bullets {
+  display: grid;
+  gap: 8px;
+  margin: 9px 0 0;
+  padding-left: 21px;
+  color: #333746;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.retro-summary-bullets li {
+  padding-left: 3px;
+}
+
+.retro-ask-title {
+  font-size: 16px;
+}
+
+.retro-ask-form .retro-input {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.retro-ask-form .retro-button {
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+.retro-answer > p:last-child {
+  font-size: 16px;
+}
+
+@media (max-width: 430px) {
+  .retro-topic-select {
+    font-size: 15px;
+  }
+
+  .retro-resource-card h3 {
+    font-size: 15px;
+  }
+
+  .retro-resource-card > p:not(.retro-resource-source),
+  .retro-learning-heading > div:first-child > p:last-child {
+    font-size: 15px;
+  }
+
+  .retro-summary-bullets,
+  .retro-answer > p:last-child {
+    font-size: 16px;
+  }
+
+  .retro-ask-form .retro-input {
+    font-size: 16px;
   }
 }
