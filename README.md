@@ -20,26 +20,6 @@ Then let it build you a little world around it. ☀️
 
 ---
 
-## Week 1 learning setup
-
-Week 1 resources use Tavily Search and require a server-side `TAVILY_API_KEY`
-in `.env.local`. Without it, no article links are shown; the topic panel reports
-that resource search is not configured. Concise summaries and question answers
-use the existing server-side `OPENROUTER_API_KEY`.
-
-Apply `supabase/migrations/20261004120000_week_one_progress.sql` to the Supabase
-project before using saved topic progress or notes requests. Also apply
-`supabase/migrations/20261006120000_user_roadmap_week_notes.sql` to enable
-account-persisted roadmaps and once-per-week notes prompt choices. These
-migrations create user-scoped tables with row-level security. Notes requests
-are stored only; no email is sent.
-
-Returning signed-in users resume from their saved roadmap and Week 1 progress.
-Resource search ranks results by topic relevance and filters common challenge
-pages; when the topic or theme explicitly indicates an Indian context, the
-search query is localized to India without restricting results to a fixed
-domain list.
-
 ## 🌸 The idea
 
 The internet gives us infinite things to learn.
