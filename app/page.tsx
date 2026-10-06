@@ -4,6 +4,7 @@ import {
   startTransition,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -44,7 +45,8 @@ function isCurriculum(value: unknown): value is Curriculum {
   );
 }
 
-type Screen = "review" | "customize" | "locked" | "learning";
+type Screen = "review" | "customize" | "locked" | "learning" | "dashboard";
+type LearningReturnScreen = "roadmap" | "dashboard";
 type TopicResource = {
   title: string;
   url: string;
@@ -194,6 +196,13 @@ export default function Home() {
   const [customizationRequest, setCustomizationRequest] = useState("");
   const [submittedRequest, setSubmittedRequest] = useState("");
   const [flowReady, setFlowReady] = useState(false);
+  const [roadmapStatus, setRoadmapStatus] = useState<
+    "idle" | "loading" | "empty" | "found" | "error"
+  >("idle");
+  const [roadmapUserId, setRoadmapUserId] = useState<string | null>(null);
+  const [roadmapOwnerId, setRoadmapOwnerId] = useState<string | null>(null);
+  const [learningReturnScreen, setLearningReturnScreen] =
+    useState<LearningReturnScreen>("roadmap");
   const [selectedTopicIndex, setSelectedTopicIndex] = useState(0);
   const [completedTopicIndexes, setCompletedTopicIndexes] = useState<number[]>([]);
   const [progressLoading, setProgressLoading] = useState(false);
@@ -208,11 +217,21 @@ export default function Home() {
   const [questionAnswer, setQuestionAnswer] = useState("");
   const [questionLoading, setQuestionLoading] = useState(false);
   const [questionError, setQuestionError] = useState("");
+  const questionController = useRef<AbortController | null>(null);
   const [notesTopicIndex, setNotesTopicIndex] = useState<number | null>(null);
   const [notesEmail, setNotesEmail] = useState("");
   const [notesMessage, setNotesMessage] = useState("");
   const [notesError, setNotesError] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
+
+  const clearTopicQuestion = () => {
+    questionController.current?.abort();
+    questionController.current = null;
+    setQuestion("");
+    setQuestionAnswer("");
+    setQuestionLoading(false);
+    setQuestionError("");
+  };
 
   useEffect(() => {
     const shouldRestore =
@@ -238,9 +257,22 @@ export default function Home() {
                 saved.screen === "review" ||
                 saved.screen === "customize" ||
                 saved.screen === "locked" ||
-                saved.screen === "learning"
+                saved.screen === "learning" ||
+                saved.screen === "dashboard"
               ) {
                 setScreen(saved.screen);
+              }
+              if (
+                saved.learningReturnScreen === "roadmap" ||
+                saved.learningReturnScreen === "dashboard"
+              ) {
+                setLearningReturnScreen(saved.learningReturnScreen);
+              }
+              if (
+                typeof saved.roadmapOwnerId === "string" ||
+                saved.roadmapOwnerId === null
+              ) {
+                setRoadmapOwnerId(saved.roadmapOwnerId);
               }
               if (
                 typeof saved.selectedTopicIndex === "number" &&
@@ -281,6 +313,8 @@ export default function Home() {
         customizationRequest,
         submittedRequest,
         selectedTopicIndex,
+        learningReturnScreen,
+        roadmapOwnerId,
       }),
     );
   }, [
@@ -294,7 +328,120 @@ export default function Home() {
     customizationRequest,
     submittedRequest,
     selectedTopicIndex,
+    learningReturnScreen,
+    roadmapOwnerId,
   ]);
+
+  const currentUserId = user?.id;
+  useEffect(() => {
+    if (!currentUserId) return;
+    let active = true;
+
+    const loadSavedRoadmap = async () => {
+      setRoadmapStatus("loading");
+      setRoadmapUserId(currentUserId);
+      try {
+        const response = await fetch("/api/user-roadmap");
+        const data: unknown = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            data &&
+              typeof data === "object" &&
+              "error" in data &&
+              typeof data.error === "string"
+              ? data.error
+              : "Could not load your roadmap.",
+          );
+        }
+        if (
+          !data ||
+          typeof data !== "object" ||
+          !("roadmap" in data) ||
+          (data.roadmap !== null && !isCurriculum(data.roadmap))
+        ) {
+          throw new Error("The saved roadmap response was invalid.");
+        }
+
+        if (!active) return;
+        if (isCurriculum(data.roadmap)) {
+          setCurriculum(data.roadmap);
+          setRoadmapOwnerId(currentUserId);
+          setTheme(data.roadmap.theme);
+          setScreen("dashboard");
+          setRoadmapStatus("found");
+        } else {
+          if (roadmapOwnerId && roadmapOwnerId !== currentUserId) {
+            setCurriculum(null);
+            setScreen("review");
+            setTheme("");
+            setLevel("");
+            setDailyTime("");
+            setStep(1);
+            setRoadmapOwnerId(null);
+          }
+          setRoadmapStatus("empty");
+        }
+      } catch (cause) {
+        if (!active) return;
+        console.error("Could not load saved roadmap:", cause);
+        setRoadmapStatus("error");
+        setError("Could not check for a saved roadmap. You can still continue this session.");
+      }
+    };
+
+    void loadSavedRoadmap();
+    return () => {
+      active = false;
+    };
+  }, [currentUserId, roadmapOwnerId]);
+
+  useEffect(() => {
+    if (
+      !currentUserId ||
+      !curriculum ||
+      roadmapUserId !== currentUserId ||
+      (roadmapOwnerId !== null && roadmapOwnerId !== currentUserId) ||
+      roadmapStatus !== "empty"
+    ) {
+      return;
+    }
+
+    let active = true;
+    const saveCurrentRoadmap = async () => {
+      try {
+        const response = await fetch("/api/user-roadmap", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(curriculum),
+        });
+        const data: unknown = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            data &&
+              typeof data === "object" &&
+              "error" in data &&
+              typeof data.error === "string"
+              ? data.error
+              : "Could not save your roadmap.",
+          );
+        }
+        if (active) {
+          setRoadmapOwnerId(currentUserId);
+          setRoadmapStatus("found");
+        }
+      } catch (cause) {
+        if (!active) return;
+        console.error("Could not save the current roadmap:", cause);
+        setRoadmapStatus("error");
+        setError("Your roadmap is ready, but it could not be saved to your account.");
+      }
+    };
+
+    void saveCurrentRoadmap();
+    return () => {
+      active = false;
+    };
+  }, [currentUserId, curriculum, roadmapUserId, roadmapOwnerId, roadmapStatus]);
 
   const weekOne = curriculum?.weeks[0];
   const weekOneTopics = useMemo(
@@ -308,10 +455,11 @@ export default function Home() {
     weekOneTopics.every((_, index) => completedTopicIndexes.includes(index));
 
   useEffect(() => {
-    if (screen !== "learning" || !user) return;
+    if ((screen !== "learning" && screen !== "dashboard") || !currentUserId) return;
     let active = true;
 
     const loadProgress = async () => {
+      setProgressLoading(true);
       try {
         const response = await fetch("/api/topic-progress");
         const data: unknown = await response.json();
@@ -369,7 +517,7 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, [screen, user, weekOneTopics]);
+  }, [screen, currentUserId, weekOneTopics]);
 
   useEffect(() => {
     if (screen !== "learning" || !user || !weekOne || !selectedTopic) return;
@@ -492,6 +640,7 @@ export default function Home() {
 
   const selectTopic = (index: number) => {
     if (index === selectedTopicIndex) return;
+    clearTopicQuestion();
     setSelectedTopicIndex(index);
     setResourcesLoading(true);
     setSummaryLoading(true);
@@ -499,9 +648,6 @@ export default function Home() {
     setTopicSummary([]);
     setResourcesError("");
     setSummaryError("");
-    setQuestion("");
-    setQuestionAnswer("");
-    setQuestionError("");
   };
 
   const updateTopicCompletion = async (topicIndex: number, completed: boolean) => {
@@ -539,10 +685,31 @@ export default function Home() {
           : current.filter((index) => index !== topicIndex),
       );
       if (completed) {
-        setNotesTopicIndex(topicIndex);
-        setNotesEmail(user.email ?? "");
-        setNotesMessage("");
-        setNotesError("");
+        const completesWeek = weekOneTopics.every(
+          (_, index) =>
+            index === topicIndex || completedTopicIndexes.includes(index),
+        );
+        if (completesWeek) {
+          const promptResponse = await fetch("/api/topic-notes-request?week=1");
+          const promptData: unknown = await promptResponse.json();
+          if (
+            !promptResponse.ok ||
+            !promptData ||
+            typeof promptData !== "object" ||
+            !("status" in promptData) ||
+            (promptData.status !== null &&
+              promptData.status !== "requested" &&
+              promptData.status !== "deferred")
+          ) {
+            throw new Error("Could not check your notes prompt status.");
+          }
+          if (promptData.status === null) {
+            setNotesTopicIndex(topicIndex);
+            setNotesEmail(user.email ?? "");
+            setNotesMessage("");
+            setNotesError("");
+          }
+        }
       }
     } catch (cause) {
       console.error("Could not save topic completion:", cause);
@@ -560,11 +727,14 @@ export default function Home() {
     setQuestionLoading(true);
     setQuestionError("");
     setQuestionAnswer("");
+    const controller = new AbortController();
+    questionController.current = controller;
 
     try {
       const response = await fetch("/api/topic-assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           mode: "question",
           topic: selectedTopic,
@@ -590,14 +760,18 @@ export default function Home() {
       ) {
         throw new Error("The answer response was invalid.");
       }
-      setQuestionAnswer(data.answer);
+      if (!controller.signal.aborted) setQuestionAnswer(data.answer);
     } catch (cause) {
+      if (controller.signal.aborted) return;
       console.error("Could not answer topic question:", cause);
       setQuestionError(
         cause instanceof Error ? cause.message : "Could not answer your question.",
       );
     } finally {
-      setQuestionLoading(false);
+      if (questionController.current === controller) {
+        questionController.current = null;
+        setQuestionLoading(false);
+      }
     }
   };
 
@@ -613,6 +787,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          action: "requested",
           week: 1,
           topic: weekOneTopics[notesTopicIndex],
           email: notesEmail.trim(),
@@ -630,6 +805,7 @@ export default function Home() {
         );
       }
       setNotesMessage("Saved! We will not send an email yet.");
+      setNotesTopicIndex(null);
     } catch (cause) {
       console.error("Could not save topic notes email request:", cause);
       setNotesError(
@@ -638,6 +814,45 @@ export default function Home() {
     } finally {
       setNotesSaving(false);
     }
+  };
+
+  const deferNotesPrompt = async () => {
+    setNotesError("");
+    try {
+      const response = await fetch("/api/topic-notes-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "deferred", week: 1 }),
+      });
+      const data: unknown = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          data &&
+            typeof data === "object" &&
+            "error" in data &&
+            typeof data.error === "string"
+            ? data.error
+            : "Could not save your choice.",
+        );
+      }
+      setNotesTopicIndex(null);
+    } catch (cause) {
+      console.error("Could not defer the week notes prompt:", cause);
+      setNotesError(
+        cause instanceof Error ? cause.message : "Could not save your choice.",
+      );
+    }
+  };
+
+  const startWeekOne = (returnTo: LearningReturnScreen) => {
+    clearTopicQuestion();
+    setLearningReturnScreen(returnTo);
+    setSelectedTopicIndex(0);
+    setResourcesLoading(true);
+    setSummaryLoading(true);
+    setProgressLoading(Boolean(user));
+    setScreen("learning");
+    if (!user) openAuth("login");
   };
 
   const buildMonth = async () => {
@@ -670,10 +885,40 @@ export default function Home() {
         throw new Error(message);
       }
 
-      const generatedCurriculum = data as Curriculum;
+      if (!isCurriculum(data)) {
+        throw new Error("The roadmap response was invalid.");
+      }
+      const generatedCurriculum = data;
       console.log("GENERATED CURRICULUM:", generatedCurriculum);
       setCurriculum(generatedCurriculum);
+      setRoadmapOwnerId(user?.id ?? null);
       setScreen("review");
+
+      if (user) {
+        try {
+          const saveResponse = await fetch("/api/user-roadmap", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(generatedCurriculum),
+          });
+          const saveData: unknown = await saveResponse.json();
+          if (!saveResponse.ok) {
+            throw new Error(
+              saveData &&
+                typeof saveData === "object" &&
+                "error" in saveData &&
+                typeof saveData.error === "string"
+                ? saveData.error
+                : "Could not save your roadmap.",
+            );
+          }
+          setRoadmapStatus("found");
+          setRoadmapUserId(user.id);
+        } catch (cause) {
+          console.error("Could not save the generated roadmap:", cause);
+          setError("Your month is ready, but it could not be saved to your account.");
+        }
+      }
     } catch (error) {
       console.error(error);
       setError("Something went wrong while building your month.");
@@ -685,6 +930,20 @@ export default function Home() {
   return (
     <DesktopFrame>
       {!curriculum ? (
+        user && roadmapStatus === "loading" ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="retro-dialog-stage"
+          >
+            <RetroWindow title="Opening your learning desktop..." icon="💾" className="retro-dialog-window">
+              <div className="retro-content-loading" role="status">
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+                Checking your saved month...
+              </div>
+            </RetroWindow>
+          </motion.div>
+        ) : (
         <div className="retro-home-layout">
           <motion.section
             initial={{ opacity: 0, y: 12 }}
@@ -861,6 +1120,7 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
+        )
       ) : screen === "locked" ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
@@ -874,17 +1134,7 @@ export default function Home() {
               <h1>Your month is locked in.</h1>
               <p>Week 1 is ready when you are.</p>
               <div className="retro-dialog-actions">
-                <RetroButton
-                  variant="lime"
-                  onClick={() => {
-                    setSelectedTopicIndex(0);
-                    setResourcesLoading(true);
-                    setSummaryLoading(true);
-                    setProgressLoading(Boolean(user));
-                    setScreen("learning");
-                    if (!user) openAuth("login");
-                  }}
-                >
+                <RetroButton variant="lime" onClick={() => startWeekOne("roadmap")}>
                   Start Week 1 <ArrowRight className="h-4 w-4" />
                 </RetroButton>
                 <RetroButton onClick={() => setScreen("review")}>
@@ -895,6 +1145,61 @@ export default function Home() {
             <div className="retro-window-status">
               <span><span className="retro-status-led" /> SAVED TO YOUR MONTH</span>
               <span>WEEK 1: STANDING BY</span>
+            </div>
+          </RetroWindow>
+        </motion.div>
+      ) : screen === "dashboard" ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="retro-dialog-stage"
+        >
+          <RetroWindow title="Your Learning Desktop" icon="🖥️" className="retro-dialog-window">
+            <div className="retro-dialog-content">
+              <div className="retro-dialog-icon" aria-hidden="true">💿</div>
+              <p className="retro-dialog-eyebrow">WELCOME BACK / MONTH FILE FOUND</p>
+              <h1>{curriculum.theme}</h1>
+              <p>{curriculum.goal}</p>
+              {error && <p role="alert" className="retro-error">{error}</p>}
+              <div className="retro-week-progress">
+                <span>WEEK 1 PROGRESS</span>
+                <strong>
+                  {progressLoading ? "SYNCING..." : `${completedTopicIndexes.length}/${weekOneTopics.length} TOPICS`}
+                </strong>
+                <div
+                  className="retro-progress-track"
+                  aria-label={`${completedTopicIndexes.length} of ${weekOneTopics.length} topics complete`}
+                >
+                  <span
+                    style={{
+                      width: `${weekOneTopics.length ? (completedTopicIndexes.length / weekOneTopics.length) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+              {progressError && <p role="alert" className="retro-error">{progressError}</p>}
+              <p className="retro-module-description">
+                {weekOneComplete
+                  ? "Week 1 is complete. Week 2 is unlocked in your roadmap."
+                  : `Up next: ${weekOne?.title ?? "Week 1"}`}
+              </p>
+              <div className="retro-dialog-actions">
+                <RetroButton
+                  variant="lime"
+                  disabled={progressLoading || weekOneTopics.length === 0}
+                  onClick={() => startWeekOne("dashboard")}
+                >
+                  {weekOneComplete ? "Review Week 1" : completedTopicIndexes.length ? "Continue Week 1" : "Start Week 1"}
+                  <ArrowRight className="h-4 w-4" />
+                </RetroButton>
+                <RetroButton onClick={() => setScreen("review")}>
+                  <ArrowLeft className="h-4 w-4" /> Open full roadmap
+                </RetroButton>
+              </div>
+            </div>
+            <div className="retro-window-status">
+              <span><span className="retro-status-led" /> ROADMAP RESTORED</span>
+              <span>PROGRESS SAVED TO ACCOUNT</span>
             </div>
           </RetroWindow>
         </motion.div>
@@ -997,8 +1302,16 @@ export default function Home() {
                 </span>
               </div>
               <div className="retro-topic-list-actions">
-                <RetroButton onClick={() => setScreen("review")}>
-                  <ArrowLeft className="h-4 w-4" /> Back to roadmap
+                <RetroButton
+                  onClick={() => {
+                    clearTopicQuestion();
+                    setScreen(
+                      learningReturnScreen === "dashboard" ? "dashboard" : "review",
+                    );
+                  }}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  {learningReturnScreen === "dashboard" ? "Back to desktop" : "Back to roadmap"}
                 </RetroButton>
               </div>
             </RetroWindow>
@@ -1129,9 +1442,6 @@ export default function Home() {
             <div
               className="retro-notes-overlay"
               role="presentation"
-              onMouseDown={(event) => {
-                if (event.target === event.currentTarget) setNotesTopicIndex(null);
-              }}
             >
               <RetroWindow title="Send notes to your inbox?" icon="✉️" className="retro-notes-window">
                 <p className="retro-notes-title">
@@ -1158,8 +1468,14 @@ export default function Home() {
                     <RetroButton type="submit" variant="lime" disabled={notesSaving}>
                       {notesSaving ? "Saving..." : "Save request"}
                     </RetroButton>
-                    <RetroButton onClick={() => setNotesTopicIndex(null)}>
-                      {notesMessage ? "Done" : "Not now"}
+                    <RetroButton
+                      onClick={() => {
+                        if (notesMessage) setNotesTopicIndex(null);
+                        else void deferNotesPrompt();
+                      }}
+                      disabled={notesSaving}
+                    >
+                      {notesMessage ? "Done" : "Maybe later"}
                     </RetroButton>
                   </div>
                 </form>

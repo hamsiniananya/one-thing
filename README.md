@@ -28,9 +28,17 @@ that resource search is not configured. Concise summaries and question answers
 use the existing server-side `OPENROUTER_API_KEY`.
 
 Apply `supabase/migrations/20261004120000_week_one_progress.sql` to the Supabase
-project before using saved topic progress or notes requests. The migration
-creates user-scoped tables with row-level security. Notes requests are stored
-only; no email is sent.
+project before using saved topic progress or notes requests. Also apply
+`supabase/migrations/20261006120000_user_roadmap_week_notes.sql` to enable
+account-persisted roadmaps and once-per-week notes prompt choices. These
+migrations create user-scoped tables with row-level security. Notes requests
+are stored only; no email is sent.
+
+Returning signed-in users resume from their saved roadmap and Week 1 progress.
+Resource search ranks results by topic relevance and filters common challenge
+pages; when the topic or theme explicitly indicates an Indian context, the
+search query is localized to India without restricting results to a fixed
+domain list.
 
 ## 🌸 The idea
 

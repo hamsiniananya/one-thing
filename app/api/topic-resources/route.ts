@@ -13,21 +13,23 @@ type TavilyResult = {
   published_date?: string;
 };
 
-const preferredIndianSources = [
-  "sebi.gov.in",
-  "nseindia.com",
-  "bseindia.com",
-  "rbi.org.in",
-  "amfiindia.com",
-  "moneycontrol.com",
-  "economictimes.indiatimes.com",
-  "livemint.com",
-  "ncert.nic.in",
-  "ignou.ac.in",
-  "iimb.ac.in",
-  "pib.gov.in",
-  "india.gov.in",
-];
+type TopicResource = {
+  title: string;
+  url: string;
+  source: string;
+  description: string;
+  publishedDate: string | null;
+  relevance: number;
+};
+
+const stopWords = new Set([
+  "about", "after", "also", "and", "are", "for", "from", "how", "into",
+  "learn", "learning", "more", "over", "that", "the", "their", "this",
+  "through", "what", "when", "where", "with", "your",
+]);
+
+const blockedPagePattern =
+  /\b(captcha|access denied|verify you are human|are you a robot|checking your browser|attention required|request blocked|temporarily unavailable|403 forbidden|robot check)\b/i;
 
 function cleanSearchText(value: string, maxLength: number) {
   return value
@@ -44,6 +46,84 @@ function cleanSearchText(value: string, maxLength: number) {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, maxLength);
+}
+
+function tokens(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .match(/[a-z0-9]{3,}/g)
+    ?.filter((token) => !stopWords.has(token))
+    .map((token) => (token.endsWith("ies") ? `${token.slice(0, -3)}y` : token.replace(/s$/, ""))) ?? [];
+}
+
+function scoreRelevance(topic: string, title: string, description: string) {
+  const topicTokens = [...new Set(tokens(topic))];
+  if (topicTokens.length === 0) return 0;
+
+  const titleTokens = new Set(tokens(title));
+  const descriptionTokens = new Set(tokens(description));
+  const matchedTitle = topicTokens.filter((token) => titleTokens.has(token)).length;
+  const matchedAny = topicTokens.filter(
+    (token) => titleTokens.has(token) || descriptionTokens.has(token),
+  ).length;
+
+  return matchedTitle * 2 + matchedAny;
+}
+
+function isRelevant(topic: string, title: string, description: string) {
+  const topicTokens = [...new Set(tokens(topic))];
+  if (topicTokens.length === 0) return false;
+  const titleTokens = new Set(tokens(title));
+  const descriptionTokens = new Set(tokens(description));
+  const titleMatches = topicTokens.filter((token) => titleTokens.has(token)).length;
+  const anyMatches = topicTokens.filter(
+    (token) => titleTokens.has(token) || descriptionTokens.has(token),
+  ).length;
+
+  return (
+    title.length >= 4 &&
+    description.length >= 30 &&
+    !blockedPagePattern.test(`${title} ${description}`) &&
+    (titleMatches / topicTokens.length >= 0.5 ||
+      anyMatches / topicTokens.length >= 0.75)
+  );
+}
+
+function parseResource(result: TavilyResult, topic: string): TopicResource | null {
+  if (typeof result.title !== "string" || typeof result.url !== "string") return null;
+
+  let url: URL;
+  try {
+    url = new URL(result.url);
+  } catch {
+    return null;
+  }
+
+  if (
+    url.protocol !== "https:" ||
+    url.username ||
+    url.password ||
+    url.hostname === "localhost" ||
+    !url.hostname.includes(".")
+  ) {
+    return null;
+  }
+
+  const title = cleanSearchText(result.title, 240);
+  const description = cleanSearchText(result.content ?? "", 500);
+  if (!isRelevant(topic, title, description)) return null;
+
+  url.hash = "";
+  return {
+    title,
+    url: url.toString(),
+    source: url.hostname.replace(/^www\./, ""),
+    description,
+    publishedDate: result.published_date ?? null,
+    relevance: scoreRelevance(topic, title, description),
+  };
 }
 
 export async function POST(request: Request) {
@@ -77,22 +157,24 @@ export async function POST(request: Request) {
     return Response.json({ error: "A valid topic and theme are required." }, { status: 400 });
   }
 
+  const { topic, theme } = parsed.data;
+  const indiaContext = /\b(india|indian|sebi|nse|bse|rbi|amfi)\b/i.test(`${theme} ${topic}`);
+  const query = [topic, theme, indiaContext ? "India" : "", "guide article explanation"]
+    .filter(Boolean)
+    .join(" ");
+
   try {
     const response = await fetch("https://api.tavily.com/search", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        query: `${parsed.data.topic} ${parsed.data.theme} India Indian educational official sources SEBI NSE BSE RBI AMFI Moneycontrol Economic Times`,
+        api_key: apiKey,
+        query,
         search_depth: "basic",
-        max_results: 4,
+        max_results: 10,
         include_answer: false,
         include_raw_content: false,
-        country: "india",
-        include_domains: preferredIndianSources,
-        exclude_domains: ["investor.gov", "vanguard.com", "schwab.com"],
+        ...(indiaContext ? { country: "india" } : {}),
       }),
       signal: AbortSignal.timeout(12_000),
     });
@@ -103,32 +185,24 @@ export async function POST(request: Request) {
     }
 
     const data: { results?: TavilyResult[] } = await response.json();
+    const seen = new Set<string>();
     const resources = (data.results ?? [])
-      .filter((result): result is TavilyResult & { title: string; url: string } =>
-        typeof result.title === "string" &&
-        typeof result.url === "string" &&
-        /^https?:\/\//i.test(result.url),
-      )
-      .map((result) => {
-        const url = new URL(result.url);
-        return {
-          title: cleanSearchText(result.title, 240),
-          url: url.toString(),
-          source: url.hostname.replace(/^www\./, ""),
-          description: cleanSearchText(result.content ?? "", 500),
-          publishedDate: result.published_date ?? null,
-        };
-      })
+      .map((result) => parseResource(result, topic))
+      .filter((result): result is TopicResource => result !== null)
+      .sort((left, right) => right.relevance - left.relevance)
       .filter((result) => {
-        const hostname = new URL(result.url).hostname.toLowerCase();
-        return (
-          result.title.length > 0 &&
-          preferredIndianSources.some(
-            (domain) => hostname === domain || hostname.endsWith(`.${domain}`),
-          )
-        );
+        if (seen.has(result.url)) return false;
+        seen.add(result.url);
+        return true;
       })
-      .slice(0, 4);
+      .slice(0, 4)
+      .map((resource) => ({
+        title: resource.title,
+        url: resource.url,
+        source: resource.source,
+        description: resource.description,
+        publishedDate: resource.publishedDate,
+      }));
 
     return Response.json({ resources });
   } catch (error) {
