@@ -2342,3 +2342,737 @@ a:focus-visible {
     font-size: 16px;
   }
 }
+
+.retro-desktop:has(.retro-dashboard) {
+  overflow: visible;
+  background-color: #fbf4df;
+  background-image:
+    linear-gradient(rgb(67 116 157 / 15%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(67 116 157 / 15%) 1px, transparent 1px),
+    linear-gradient(135deg, #fff9e9, #f8f0d9);
+  background-size: 24px 24px, 24px 24px, 100% 100%;
+}
+
+.retro-desktop:has(.retro-dashboard) .retro-site-header {
+  border-bottom-color: rgb(37 54 82 / 24%);
+}
+
+.retro-dashboard {
+  position: relative;
+  display: grid;
+  gap: 17px;
+  padding: 4px 0 46px;
+}
+
+.retro-dashboard-topline,
+.retro-dashboard-section-heading,
+.retro-billboard-link,
+.retro-calendar-heading,
+.retro-calendar-footnote {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.retro-dashboard-topline {
+  color: #57504a;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+}
+
+.retro-dashboard-topline p {
+  margin: 0;
+}
+
+.retro-billboard {
+  position: relative;
+  display: flex;
+  width: min(760px, calc(100% - 38px));
+  min-height: 228px;
+  flex-direction: column;
+  justify-self: center;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  border: 3px solid #252337;
+  margin: 7px 0 26px;
+  background:
+    radial-gradient(circle at 12% 22%, rgb(255 255 255 / 65%) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 71%, rgb(255 255 255 / 45%) 0 1px, transparent 2px),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 8%) 0 1px, transparent 1px 5px),
+    #f3b6c8;
+  background-size: 17px 17px, 13px 13px, 100% 6px, auto;
+  padding: 30px clamp(18px, 6vw, 64px) 27px;
+  box-shadow: 7px 8px 0 #292538, 11px 13px 0 rgb(40 36 55 / 14%);
+  color: #272238;
+  cursor: pointer;
+  text-align: center;
+  transform: rotate(-1deg);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.retro-billboard:hover {
+  box-shadow: 9px 10px 0 #292538, 13px 15px 0 rgb(40 36 55 / 14%);
+  transform: rotate(0deg) translateY(-2px);
+}
+
+.retro-billboard-tape,
+.retro-calendar-tape {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 93px;
+  height: 23px;
+  background: rgb(255 232 125 / 86%);
+  box-shadow: 0 1px 2px rgb(43 36 39 / 12%);
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+.retro-billboard-sticker {
+  position: absolute;
+  top: 15px;
+  right: 19px;
+  color: #1746b4;
+  font-family: Arial, sans-serif;
+  font-size: 31px;
+  text-shadow: 2px 2px #fff3a3;
+  transform: rotate(13deg);
+}
+
+.retro-billboard-eyebrow,
+.retro-dashboard-label {
+  color: #35569a;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+}
+
+.retro-billboard-theme {
+  max-width: 100%;
+  margin-top: 12px;
+  color: #182e65;
+  font-size: clamp(24px, 5vw, 45px);
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+  text-shadow: 2px 2px #fff0b6;
+  text-transform: uppercase;
+}
+
+.retro-billboard-goal {
+  max-width: 540px;
+  margin-top: 12px;
+  color: #3e3d4d;
+  font-family: Arial, Helvetica, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.retro-billboard-link {
+  gap: 6px;
+  margin-top: 16px;
+  color: #293b77;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.retro-billboard-link svg {
+  width: 13px;
+  height: 13px;
+}
+
+.retro-billboard-post {
+  position: absolute;
+  z-index: -1;
+  top: calc(100% + 7px);
+  left: 50%;
+  width: 11px;
+  height: 29px;
+  border: 2px solid #302d36;
+  border-top: 0;
+  background: #b58e68;
+  transform: translateX(-50%);
+}
+
+.retro-dashboard-section-heading {
+  align-items: end;
+  margin-top: 10px;
+}
+
+.retro-dashboard-label {
+  display: block;
+  margin: 0 0 6px;
+  color: #8d526d;
+}
+
+.retro-dashboard-section-heading h2 {
+  margin: 0;
+  color: #222a49;
+  font-size: clamp(19px, 3vw, 25px);
+  letter-spacing: -1px;
+}
+
+.retro-dashboard-section-note {
+  padding-bottom: 3px;
+  color: #676064;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.retro-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(9px, 2vw, 21px);
+  padding: 9px 3px 14px;
+}
+
+.retro-folder {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 184px;
+  flex-direction: column;
+  align-items: stretch;
+  border: 0;
+  background: transparent;
+  padding: 20px 0 0;
+  color: #1c2638;
+  text-align: left;
+  transform: rotate(-1deg);
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.retro-folder-2 { transform: rotate(1.2deg) translateY(5px); }
+.retro-folder-3 { transform: rotate(-1.5deg) translateY(-2px); }
+.retro-folder-4 { transform: rotate(1deg) translateY(4px); }
+
+.retro-folder:not(:disabled) {
+  cursor: pointer;
+}
+
+.retro-folder:not(:disabled):hover {
+  z-index: 2;
+  filter: drop-shadow(2px 4px 1px rgb(40 33 42 / 20%));
+  transform: rotate(0deg) translateY(-5px);
+}
+
+.retro-folder:focus-visible {
+  outline-offset: 5px;
+}
+
+.retro-folder-tab {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  display: flex;
+  width: 67%;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #312d35;
+  border-bottom: 0;
+  border-radius: 12px 15px 0 0;
+  background: var(--folder-tab);
+  padding: 5px 9px 7px;
+  color: #262333;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.retro-folder-tab svg {
+  width: 13px;
+  height: 13px;
+}
+
+.retro-folder-paper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 154px;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 2px solid #312d35;
+  border-radius: 9px 12px 10px 10px;
+  background:
+    linear-gradient(0deg, rgb(255 255 255 / 54%) 0 1px, transparent 1px 100%),
+    repeating-linear-gradient(0deg, transparent 0 22px, rgb(57 61 75 / 8%) 22px 23px),
+    var(--folder-paper);
+  padding: 17px 12px 13px;
+  box-shadow: inset 2px 2px rgb(255 255 255 / 52%);
+}
+
+.retro-folder-title {
+  display: -webkit-box;
+  width: 100%;
+  overflow: hidden;
+  color: #242238;
+  font-family: Arial, Helvetica, system-ui, sans-serif;
+  font-size: clamp(14px, 1.5vw, 18px);
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.retro-folder-count,
+.retro-folder-state {
+  margin-top: 10px;
+  color: #314878;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.retro-folder-state {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid currentcolor;
+  background: rgb(255 255 255 / 38%);
+  padding: 4px 6px;
+  color: #633950;
+  font-size: 7px;
+}
+
+.retro-folder-subtopics {
+  display: -webkit-box;
+  margin-top: auto;
+  padding-top: 11px;
+  color: #514b52;
+  font-family: Arial, Helvetica, system-ui, sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.retro-folder-shadow {
+  position: absolute;
+  right: -4px;
+  bottom: 0;
+  left: 8px;
+  height: 12px;
+  border: 2px solid #312d35;
+  border-top: 0;
+  border-radius: 0 0 9px 9px;
+  background: var(--folder-tab);
+}
+
+.retro-folder-1 { --folder-tab: #ef9eae; --folder-paper: #f5c9c9; }
+.retro-folder-2 { --folder-tab: #6e849b; --folder-paper: #c4d2d7; }
+.retro-folder-3 { --folder-tab: #e8cf6d; --folder-paper: #f6e9ad; }
+.retro-folder-4 { --folder-tab: #78aaa0; --folder-paper: #c3ded1; }
+
+.retro-folder-locked {
+  cursor: not-allowed;
+  filter: saturate(0.45);
+}
+
+.retro-folder-locked .retro-folder-paper {
+  background:
+    repeating-linear-gradient(135deg, rgb(68 67 70 / 5%) 0 5px, transparent 5px 10px),
+    var(--folder-paper);
+}
+
+.retro-dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.82fr);
+  align-items: stretch;
+  gap: 24px;
+  margin-top: 12px;
+}
+
+.retro-next-up {
+  position: relative;
+  min-height: 206px;
+  border: 2px solid #282d40;
+  background:
+    radial-gradient(circle at 18px 18px, rgb(33 50 80 / 9%) 0 1px, transparent 2px),
+    #fff9e8;
+  background-size: 11px 11px;
+  padding: 21px 24px;
+  box-shadow: 4px 5px #292d3c;
+}
+
+.retro-next-up .retro-dashboard-label {
+  color: #39528b;
+}
+
+.retro-next-up h2 {
+  max-width: 480px;
+  margin: 12px 0 0;
+  color: #262941;
+  font-family: Arial, Helvetica, system-ui, sans-serif;
+  font-size: clamp(17px, 2.5vw, 23px);
+  line-height: 1.35;
+}
+
+.retro-next-up h2 span {
+  color: #d45c87;
+}
+
+.retro-next-up-progress {
+  margin: 8px 0 0;
+  color: #57535a;
+  font-family: Arial, Helvetica, system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.retro-next-up-doodle {
+  position: absolute;
+  top: 12px;
+  right: 17px;
+  color: #ec7595;
+  font-family: Arial, sans-serif;
+  font-size: 28px;
+  transform: rotate(12deg);
+}
+
+.retro-dashboard-action {
+  display: inline-flex;
+  min-height: 35px;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #252638;
+  margin-top: 17px;
+  background: #d9ef91;
+  padding: 7px 10px;
+  box-shadow: 3px 3px #252638;
+  color: #21253a;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.retro-dashboard-action:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.retro-dashboard-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+.retro-calendar-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  border: 2px solid #302b39;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 24px, rgb(89 55 74 / 8%) 24px 25px),
+    #f6ceda;
+  padding: 17px 17px 12px;
+  box-shadow: 4px 5px #302b39;
+  color: #24243a;
+  text-align: left;
+  transform: rotate(1deg);
+  transition: transform 150ms ease;
+}
+
+.retro-calendar-card:hover {
+  transform: rotate(0deg) translateY(-3px);
+}
+
+.retro-calendar-tape {
+  top: -10px;
+  left: 76%;
+  width: 73px;
+  height: 19px;
+  background: rgb(177 218 197 / 92%);
+  transform: translateX(-50%) rotate(4deg);
+}
+
+.retro-calendar-heading {
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.retro-calendar-heading .retro-dashboard-label {
+  color: #7e435e;
+  font-size: 7px;
+}
+
+.retro-calendar-heading strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.retro-calendar-heading > svg {
+  width: 19px;
+  height: 19px;
+  color: #6d4774;
+}
+
+.retro-calendar-month {
+  display: block;
+  margin: 13px 0 7px;
+  color: #8b385e;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.retro-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 1px solid #7a5265;
+  border-left: 1px solid #7a5265;
+}
+
+.retro-calendar-weekday,
+.retro-calendar-day {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 27px;
+  place-items: center;
+  border-right: 1px solid #7a5265;
+  border-bottom: 1px solid #7a5265;
+  color: #393242;
+  font-size: 9px;
+}
+
+.retro-calendar-weekday {
+  min-height: 22px;
+  background: #e995b5;
+  color: #fff8ed;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.retro-calendar-day-active {
+  background: rgb(250 233 143 / 72%);
+  color: #253e9c;
+  font-weight: 900;
+}
+
+.retro-calendar-day i {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  color: #ed527f;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  font-style: normal;
+}
+
+.retro-calendar-day-blank {
+  background: rgb(255 255 255 / 18%);
+}
+
+.retro-calendar-footnote {
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+  color: #5e4e59;
+  font-size: 7px;
+}
+
+.retro-calendar-footnote > span {
+  color: #824562;
+  font-weight: 900;
+}
+
+.retro-calendar-overlay {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgb(25 27 39 / 62%);
+  padding: 24px;
+}
+
+.retro-calendar-dialog {
+  width: min(590px, 100%);
+  border: 3px solid #282738;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgb(89 55 74 / 8%) 31px 32px),
+    #f8d9e1;
+  padding: 0 22px 20px;
+  box-shadow: 8px 9px #161923;
+}
+
+.retro-calendar-dialog-bar {
+  display: flex;
+  min-height: 35px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #292a3b;
+  margin: 0 -22px;
+  background: #d07199;
+  padding: 5px 10px 5px 14px;
+  color: #fff9e9;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.retro-calendar-dialog-bar button {
+  width: 24px;
+  height: 23px;
+  border: 1px solid #292a3b;
+  background: #f5dae1;
+  color: #27283a;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.retro-calendar-dialog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.retro-calendar-dialog-heading h2 {
+  margin: 0;
+  color: #282b47;
+  font-size: clamp(18px, 4vw, 25px);
+  text-align: center;
+}
+
+.retro-calendar-dialog-heading button {
+  display: grid;
+  width: 34px;
+  height: 32px;
+  place-items: center;
+  border: 2px solid #302b39;
+  background: #f5b6ca;
+  box-shadow: 2px 2px #302b39;
+}
+
+.retro-calendar-dialog-heading button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.retro-calendar-explanation {
+  margin: 13px 0;
+  color: #59515b;
+  font-family: Arial, Helvetica, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.retro-calendar-grid-large .retro-calendar-weekday {
+  min-height: 31px;
+  font-size: 9px;
+}
+
+.retro-calendar-grid-large .retro-calendar-day {
+  min-height: clamp(43px, 8vw, 60px);
+  font-size: 14px;
+}
+
+.retro-calendar-grid-large .retro-calendar-day i {
+  top: 4px;
+  right: 5px;
+  font-size: 12px;
+}
+
+.retro-calendar-detail-count {
+  margin: 12px 0 0;
+  color: #73415c;
+  font-size: 8px;
+  font-weight: 900;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .retro-dashboard {
+    gap: 13px;
+    padding-top: 0;
+  }
+
+  .retro-billboard {
+    width: calc(100% - 20px);
+    min-height: 210px;
+    margin-bottom: 19px;
+  }
+
+  .retro-folder-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 17px;
+  }
+
+  .retro-dashboard-bottom-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 430px) {
+  .retro-dashboard-topline {
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 7px;
+  }
+
+  .retro-dashboard-topline > span {
+    text-align: right;
+  }
+
+  .retro-dashboard-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .retro-dashboard-section-note {
+    font-size: 7px;
+  }
+
+  .retro-folder-grid {
+    gap: 8px 12px;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .retro-folder {
+    min-height: 165px;
+  }
+
+  .retro-folder-paper {
+    min-height: 138px;
+    padding: 14px 9px 10px;
+  }
+
+  .retro-folder-title {
+    font-size: 15px;
+  }
+
+  .retro-folder-subtopics {
+    font-size: 9px;
+  }
+
+  .retro-next-up {
+    padding: 19px 16px;
+  }
+
+  .retro-calendar-card {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .retro-calendar-dialog {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .retro-calendar-dialog-bar {
+    margin-right: -13px;
+    margin-left: -13px;
+  }
+
+  .retro-calendar-overlay {
+    padding: 14px;
+  }
+}

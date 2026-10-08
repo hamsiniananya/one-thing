@@ -4,6 +4,8 @@ import { z } from "zod";
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY,
+  timeout: 60_000,
+  maxRetries: 0,
 });
 
 const roadmapSchema = z.object({
@@ -21,6 +23,66 @@ const roadmapSchema = z.object({
     .length(4),
 });
 
+const roadmapJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["theme", "goal", "weeks"],
+  properties: {
+    theme: { type: "string" },
+    goal: { type: "string" },
+    weeks: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["week", "title", "description", "subtopics"],
+        properties: {
+          week: { type: "number" },
+          title: { type: "string" },
+          description: { type: "string" },
+          subtopics: { type: "array", items: { type: "string" } },
+        },
+      },
+    },
+  },
+};
+
+function parseJsonResponse(text: string): unknown {
+  const normalized = text
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+  const objectStart = normalized.indexOf("{");
+  if (objectStart < 0) {
+    throw new SyntaxError("No JSON object found in model response.");
+  }
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = objectStart; index < normalized.length; index += 1) {
+    const character = normalized[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === '"') inString = false;
+      continue;
+    }
+    if (character === '"') inString = true;
+    else if (character === "{") depth += 1;
+    else if (character === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return JSON.parse(normalized.slice(objectStart, index + 1));
+      }
+    }
+  }
+
+  throw new SyntaxError("The JSON object in the model response is incomplete.");
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -35,12 +97,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    console.log("Generating roadmap for:", {
-      theme,
-      level,
-      dailyTime,
-    });
 
     const response = await openai.chat.completions.create({
       model: "openrouter/free",
@@ -131,62 +187,89 @@ India
         },
       ],
 
-      max_tokens: 4000,
+      max_tokens: 12000,
       temperature: 0.7,
 
       response_format: {
-        type: "json_object",
+        type: "json_schema",
+        json_schema: {
+          name: "one_thing_roadmap",
+          strict: true,
+          schema: roadmapJsonSchema,
+        },
       },
     });
 
-    console.log("RAW AI RESPONSE:", response);
-
     const rawOutput = response.choices?.[0]?.message?.content;
+    const finishReason = response.choices?.[0]?.finish_reason ?? "unknown";
 
     if (!rawOutput) {
-      console.error("AI returned no content:", response);
+      console.error("Roadmap model returned no content:", {
+        model: response.model,
+        finishReason,
+        usage: response.usage,
+        refusal: response.choices?.[0]?.message?.refusal,
+      });
 
       return Response.json(
         {
-          error: "The AI returned an empty response. Please try again.",
+          error:
+            response.choices?.[0]?.message?.refusal ??
+            "The AI returned an empty response. Please try again.",
         },
-        { status: 500 }
+        { status: 502 }
       );
     }
 
-    console.log("AI TEXT:", rawOutput);
+    console.info("Roadmap model response metadata:", {
+      model: response.model,
+      finishReason,
+      usage: response.usage,
+      outputLength: rawOutput.length,
+    });
 
-    let parsedOutput;
+    let parsedOutput: unknown;
 
     try {
-      parsedOutput = JSON.parse(rawOutput);
+      parsedOutput = parseJsonResponse(rawOutput);
     } catch (error) {
-      console.error("JSON PARSE ERROR:", error);
-      console.error("RAW OUTPUT:", rawOutput);
+      console.error("Roadmap JSON parsing failed:", {
+        model: response.model,
+        finishReason,
+        usage: response.usage,
+        outputLength: rawOutput.length,
+        outputPreview: rawOutput.slice(0, 1200),
+        error,
+      });
 
       return Response.json(
         {
-          error: "The AI returned invalid JSON. Please try again.",
+          error:
+            finishReason === "length"
+              ? "The AI response was cut off before the roadmap was complete. Please try again."
+              : "The AI response was not valid roadmap JSON. Please try again.",
         },
-        { status: 500 }
+        { status: 502 }
       );
     }
 
-    let roadmap;
-
-    try {
-      roadmap = roadmapSchema.parse(parsedOutput);
-    } catch (error) {
-      console.error("ZOD VALIDATION ERROR:", error);
-      console.error("PARSED OUTPUT:", parsedOutput);
+    const roadmapResult = roadmapSchema.safeParse(parsedOutput);
+    if (!roadmapResult.success) {
+      console.error("Roadmap Zod validation failed:", {
+        model: response.model,
+        finishReason,
+        issues: roadmapResult.error.issues,
+        parsedOutput,
+      });
 
       return Response.json(
         {
           error: "The AI returned an invalid roadmap structure.",
         },
-        { status: 500 }
+        { status: 502 }
       );
     }
+    const roadmap = roadmapResult.data;
 
     const expectedWeeks = [1, 2, 3, 4];
 
@@ -210,8 +293,6 @@ India
 
     // Preserve exactly what the user entered.
     roadmap.theme = theme;
-
-    console.log("FINAL ROADMAP:", roadmap);
 
     return Response.json(roadmap);
   } catch (error) {

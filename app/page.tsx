@@ -10,7 +10,17 @@ import {
   type ReactNode,
 } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, LoaderCircle, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  LoaderCircle,
+  LockKeyhole,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
 import { AuthControls, useAuth } from "../components/auth-provider";
 
@@ -47,6 +57,11 @@ function isCurriculum(value: unknown): value is Curriculum {
 
 type Screen = "review" | "customize" | "locked" | "learning" | "dashboard";
 type LearningReturnScreen = "roadmap" | "dashboard";
+type CompletedTopic = {
+  topic_index: number;
+  topic: string;
+  updated_at?: string;
+};
 type TopicResource = {
   title: string;
   url: string;
@@ -203,8 +218,12 @@ export default function Home() {
   const [roadmapOwnerId, setRoadmapOwnerId] = useState<string | null>(null);
   const [learningReturnScreen, setLearningReturnScreen] =
     useState<LearningReturnScreen>("roadmap");
+  const [completedTopicDates, setCompletedTopicDates] = useState<string[]>([]);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [selectedTopicIndex, setSelectedTopicIndex] = useState(0);
   const [completedTopicIndexes, setCompletedTopicIndexes] = useState<number[]>([]);
+  const [progressRefresh, setProgressRefresh] = useState(0);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState("");
   const [resources, setResources] = useState<TopicResource[]>([]);
@@ -453,6 +472,22 @@ export default function Home() {
     Boolean(user) &&
     weekOneTopics.length > 0 &&
     weekOneTopics.every((_, index) => completedTopicIndexes.includes(index));
+  const dashboardCalendarDays = useMemo(() => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const offset = firstDay.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cellCount = Math.ceil((offset + daysInMonth) / 7) * 7;
+    return Array.from({ length: cellCount }, (_, index) => {
+      const day = index - offset + 1;
+      return day >= 1 && day <= daysInMonth ? day : null;
+    });
+  }, [calendarMonth]);
+  const calendarMonthKey = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, "0")}-`;
+  const calendarMonthCompletionCount = completedTopicDates.filter((date) =>
+    date.startsWith(calendarMonthKey),
+  ).length;
 
   useEffect(() => {
     if ((screen !== "learning" && screen !== "dashboard") || !currentUserId) return;
@@ -501,6 +536,25 @@ export default function Home() {
               })
               .filter((index) => index >= 0 && index < weekOneTopics.length),
           );
+          setCompletedTopicDates(
+            data.completedTopics
+              .filter(
+                (entry): entry is CompletedTopic =>
+                  Boolean(entry) &&
+                  typeof entry === "object" &&
+                  "topic_index" in entry &&
+                  typeof entry.topic_index === "number" &&
+                  "topic" in entry &&
+                  typeof entry.topic === "string" &&
+                  "updated_at" in entry &&
+                  typeof entry.updated_at === "string" &&
+                  weekOneTopics[entry.topic_index] === entry.topic,
+              )
+              .map((entry) => {
+                const date = new Date(entry.updated_at!);
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+              }),
+          );
           setProgressError("");
         }
       } catch (cause) {
@@ -517,7 +571,7 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, [screen, currentUserId, weekOneTopics]);
+  }, [screen, currentUserId, weekOneTopics, progressRefresh]);
 
   useEffect(() => {
     if (screen !== "learning" || !user || !weekOne || !selectedTopic) return;
@@ -684,6 +738,7 @@ export default function Home() {
           ? [...new Set([...current, topicIndex])]
           : current.filter((index) => index !== topicIndex),
       );
+      setProgressRefresh((revision) => revision + 1);
       if (completed) {
         const completesWeek = weekOneTopics.every(
           (_, index) =>
@@ -921,7 +976,11 @@ export default function Home() {
       }
     } catch (error) {
       console.error(error);
-      setError("Something went wrong while building your month.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while building your month.",
+      );
     } finally {
       setLoading(false);
     }
@@ -1152,56 +1211,234 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="retro-dialog-stage"
+          className="retro-dashboard"
         >
-          <RetroWindow title="Your Learning Desktop" icon="🖥️" className="retro-dialog-window">
-            <div className="retro-dialog-content">
-              <div className="retro-dialog-icon" aria-hidden="true">💿</div>
-              <p className="retro-dialog-eyebrow">WELCOME BACK / MONTH FILE FOUND</p>
-              <h1>{curriculum.theme}</h1>
-              <p>{curriculum.goal}</p>
-              {error && <p role="alert" className="retro-error">{error}</p>}
-              <div className="retro-week-progress">
-                <span>WEEK 1 PROGRESS</span>
-                <strong>
-                  {progressLoading ? "SYNCING..." : `${completedTopicIndexes.length}/${weekOneTopics.length} TOPICS`}
-                </strong>
-                <div
-                  className="retro-progress-track"
-                  aria-label={`${completedTopicIndexes.length} of ${weekOneTopics.length} topics complete`}
+          <div className="retro-dashboard-topline">
+            <p><span className="retro-blink-dot" /> YOUR PERSONAL LEARNING DESKTOP</p>
+            <span>MONTH FILE: {new Date().toLocaleDateString("en", { month: "short", year: "numeric" }).toUpperCase()}</span>
+          </div>
+
+          {error && <p role="alert" className="retro-error">{error}</p>}
+          {progressError && <p role="alert" className="retro-error">{progressError}</p>}
+
+          <button
+            type="button"
+            className="retro-billboard"
+            onClick={() => setScreen("review")}
+            aria-label={`Open full roadmap for ${curriculum.theme}`}
+          >
+            <span className="retro-billboard-tape" aria-hidden="true" />
+            <span className="retro-billboard-sticker" aria-hidden="true">✦</span>
+            <span className="retro-billboard-eyebrow">THIS MONTH&apos;S OBSESSION</span>
+            <span className="retro-billboard-theme">{curriculum.theme}</span>
+            <span className="retro-billboard-goal">{curriculum.goal}</span>
+            <span className="retro-billboard-link">OPEN THE WHOLE ROADMAP <ArrowUpRight /></span>
+            <span className="retro-billboard-post" aria-hidden="true" />
+          </button>
+
+          <div className="retro-dashboard-section-heading">
+            <div>
+              <p className="retro-dashboard-label">YOUR DESKTOP / FILES</p>
+              <h2>Your four-week journey</h2>
+            </div>
+            <span className="retro-dashboard-section-note">4 FOLDERS · ONE BIG IDEA</span>
+          </div>
+
+          <div className="retro-folder-grid">
+            {curriculum.weeks.slice(0, 4).map((week, index) => {
+              const isWeekOne = index === 0;
+              const isWeekTwoUnlocked = index === 1 && weekOneComplete;
+              const isLocked = index > 1 || (index === 1 && !weekOneComplete);
+              const topicCount = isWeekOne ? weekOneTopics.length : week.subtopics.length;
+              const completedCount = isWeekOne ? completedTopicIndexes.length : 0;
+              const folderContent = (
+                <>
+                  <span className="retro-folder-tab">
+                    <span>WEEK {String(week.week).padStart(2, "0")}</span>
+                    {isLocked ? <LockKeyhole aria-hidden="true" /> : <span aria-hidden="true">✦</span>}
+                  </span>
+                  <span className="retro-folder-paper">
+                    <span className="retro-folder-title">{week.title}</span>
+                    {isLocked ? (
+                      <span className="retro-folder-state">LOCKED FOR NOW</span>
+                    ) : isWeekTwoUnlocked ? (
+                      <span className="retro-folder-state">UNLOCKED · ROADMAP</span>
+                    ) : (
+                      <span className="retro-folder-count">
+                        {progressLoading ? "SYNCING..." : `${completedCount}/${topicCount} TOPICS`}
+                      </span>
+                    )}
+                    <span className="retro-folder-subtopics">
+                      {week.subtopics.slice(0, 3).join(" · ")}
+                    </span>
+                  </span>
+                  <span className="retro-folder-shadow" aria-hidden="true" />
+                </>
+              );
+
+              return (
+                <button
+                  key={week.week}
+                  type="button"
+                  className={`retro-folder retro-folder-${index + 1} ${isLocked ? "retro-folder-locked" : ""}`}
+                  disabled={isLocked}
+                  onClick={() => {
+                    if (isWeekOne) startWeekOne("dashboard");
+                    else setScreen("review");
+                  }}
+                  aria-label={
+                    isLocked
+                      ? `Week ${week.week}: ${week.title}, locked`
+                      : isWeekOne
+                        ? `Open Week ${week.week}: ${week.title}`
+                        : `Open the roadmap at Week ${week.week}: ${week.title}`
+                  }
                 >
-                  <span
-                    style={{
-                      width: `${weekOneTopics.length ? (completedTopicIndexes.length / weekOneTopics.length) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-              </div>
-              {progressError && <p role="alert" className="retro-error">{progressError}</p>}
-              <p className="retro-module-description">
-                {weekOneComplete
-                  ? "Week 1 is complete. Week 2 is unlocked in your roadmap."
-                  : `Up next: ${weekOne?.title ?? "Week 1"}`}
+                  {folderContent}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="retro-dashboard-bottom-grid">
+            <section className="retro-next-up">
+              <div className="retro-next-up-doodle" aria-hidden="true">✦</div>
+              <p className="retro-dashboard-label">NEXT UP / {weekOneComplete ? "UNLOCKED" : "READY WHEN YOU ARE"}</p>
+              <h2>
+                Week {String(weekOneComplete ? (curriculum.weeks[1]?.week ?? 2) : (weekOne?.week ?? 1)).padStart(2, "0")}
+                <span> · </span>
+                {weekOneComplete ? (curriculum.weeks[1]?.title ?? "Next week") : (weekOne?.title ?? "Week 1")}
+              </h2>
+              <p className="retro-next-up-progress">
+                {progressLoading
+                  ? "Syncing your progress..."
+                  : weekOneComplete
+                    ? "Week 1 complete · Week 2 is unlocked in your roadmap"
+                    : `${completedTopicIndexes.length}/${weekOneTopics.length} topics complete`}
               </p>
-              <div className="retro-dialog-actions">
-                <RetroButton
-                  variant="lime"
-                  disabled={progressLoading || weekOneTopics.length === 0}
-                  onClick={() => startWeekOne("dashboard")}
-                >
-                  {weekOneComplete ? "Review Week 1" : completedTopicIndexes.length ? "Continue Week 1" : "Start Week 1"}
-                  <ArrowRight className="h-4 w-4" />
-                </RetroButton>
-                <RetroButton onClick={() => setScreen("review")}>
-                  <ArrowLeft className="h-4 w-4" /> Open full roadmap
-                </RetroButton>
-              </div>
+              <button
+                type="button"
+                className="retro-dashboard-action"
+                disabled={progressLoading || weekOneTopics.length === 0}
+                onClick={() =>
+                  weekOneComplete ? setScreen("review") : startWeekOne("dashboard")
+                }
+              >
+                {weekOneComplete ? "OPEN FULL ROADMAP" : "OPEN WEEK 01"} <ArrowRight aria-hidden="true" />
+              </button>
+            </section>
+
+            <button
+              type="button"
+              className="retro-calendar-card"
+              onClick={() => setCalendarOpen(true)}
+              aria-haspopup="dialog"
+            >
+              <span className="retro-calendar-tape" aria-hidden="true" />
+              <span className="retro-calendar-heading">
+                <span>
+                  <span className="retro-dashboard-label">SHOWING UP / LITTLE BY LITTLE</span>
+                  <strong>DAILY CHECK-IN</strong>
+                </span>
+                <CalendarDays aria-hidden="true" />
+              </span>
+              <span className="retro-calendar-month">
+                {calendarMonth.toLocaleDateString("en", { month: "long", year: "numeric" })}
+              </span>
+              <span className="retro-calendar-grid" aria-hidden="true">
+                {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
+                  <span key={`${day}-${index}`} className="retro-calendar-weekday">{day}</span>
+                ))}
+                {dashboardCalendarDays.map((day, index) => {
+                  const dateKey = day
+                    ? `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+                    : "";
+                  return (
+                    <span
+                      key={`calendar-${index}`}
+                      className={`retro-calendar-day ${day ? "" : "retro-calendar-day-blank"} ${completedTopicDates.includes(dateKey) ? "retro-calendar-day-active" : ""}`}
+                    >
+                      {day ?? ""}
+                      {day && completedTopicDates.includes(dateKey) && <i>★</i>}
+                    </span>
+                  );
+                })}
+              </span>
+              <span className="retro-calendar-footnote">
+                {calendarMonthCompletionCount
+                  ? `${calendarMonthCompletionCount} saved topic completion day${calendarMonthCompletionCount === 1 ? "" : "s"} this month`
+                  : "No completed-topic dates this month yet"}
+                <span>VIEW CALENDAR →</span>
+              </span>
+            </button>
+          </div>
+
+          {calendarOpen && (
+            <div
+              className="retro-calendar-overlay"
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setCalendarOpen(false);
+              }}
+            >
+              <section
+                className="retro-calendar-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="retro-calendar-dialog-title"
+              >
+                <div className="retro-calendar-dialog-bar">
+                  <span>ONE THING / CHECK-IN CALENDAR</span>
+                  <button type="button" onClick={() => setCalendarOpen(false)} aria-label="Close calendar">×</button>
+                </div>
+                <div className="retro-calendar-dialog-heading">
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+                    aria-label="Previous month"
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <h2 id="retro-calendar-dialog-title">
+                    {calendarMonth.toLocaleDateString("en", { month: "long", year: "numeric" })}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setCalendarMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+                    aria-label="Next month"
+                  >
+                    <ChevronRight />
+                  </button>
+                </div>
+                <p className="retro-calendar-explanation">
+                  Stars mark days when a Week 1 topic was saved as complete. This is completion history, not a separate daily check-in tracker.
+                </p>
+                <div className="retro-calendar-grid retro-calendar-grid-large">
+                  {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day, index) => (
+                    <span key={`${day}-${index}`} className="retro-calendar-weekday">{day}</span>
+                  ))}
+                  {dashboardCalendarDays.map((day, index) => {
+                    const dateKey = day
+                      ? `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+                      : "";
+                    const active = completedTopicDates.includes(dateKey);
+                    return (
+                      <span
+                        key={`calendar-detail-${index}`}
+                        className={`retro-calendar-day ${day ? "" : "retro-calendar-day-blank"} ${active ? "retro-calendar-day-active" : ""}`}
+                      >
+                        {day ?? ""}
+                        {active && <i>★</i>}
+                      </span>
+                    );
+                  })}
+                </div>
+                <p className="retro-calendar-detail-count">
+                  {calendarMonthCompletionCount} completion days shown
+                </p>
+              </section>
             </div>
-            <div className="retro-window-status">
-              <span><span className="retro-status-led" /> ROADMAP RESTORED</span>
-              <span>PROGRESS SAVED TO ACCOUNT</span>
-            </div>
-          </RetroWindow>
+          )}
         </motion.div>
       ) : screen === "learning" ? (
         <motion.div

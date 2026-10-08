@@ -22,7 +22,7 @@ export async function GET() {
 
   const { data, error } = await auth.supabase
     .from("topic_progress")
-    .select("topic_index, topic, completed")
+    .select("topic_index, topic, completed, updated_at")
     .eq("user_id", auth.user.id)
     .eq("week", 1)
     .eq("completed", true)
